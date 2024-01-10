@@ -16,7 +16,11 @@ In this work, we aim to build a low level obstacle avoidance controller that doe
 https://github.com/chetanreddy1412/safe-obstacle-avoidance/assets/60615610/03253815-5a0b-4eda-b857-a247d76853b1
 
 - The trajectories of Reference Velocity and Filtered Velocity Commands (which comply with safety constraints) are depicted below for a particular segment of the path:
-https://github.com/chetanreddy1412/safe-obstacle-avoidance/assets/60615610/73bb4d6f-ae57-426b-8a19-9d9a6f7d5982
+
+
+https://github.com/chetanreddy1412/safe-obstacle-avoidance/assets/60615610/3afb914d-0c68-4009-8323-13c9b6310793
+
+
 
    <img width="624" alt="Screenshot 2024-01-10 at 4 59 04 PM" src="https://github.com/chetanreddy1412/safe-obstacle-avoidance/assets/60615610/5779bd82-8b26-4e00-8a8d-4e007edd8537">
 
