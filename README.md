@@ -1,6 +1,6 @@
 # safe-obstacle-avoidance
 
-In this work, we aim to build a low level obstacle avoidance controller that does not rely on global localisation or pre-existing maps. It provides provable guarantees to safety even in an unknown and uncertain environment.  
+In this work, we aim to build a low level obstacle avoidance controller using depth images that does not rely on global localisation or pre-existing maps. Using Control Barrier Functions (CBFs), we provide provable guarantees to safety even in an unknown and uncertain environment.  
 
 ## Implementation
 - Every 0.1 seconds (with a frequency of 10 Hz), a depth image is generated from the Intel RealSense Camera.
