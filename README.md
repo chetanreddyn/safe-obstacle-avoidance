@@ -15,7 +15,8 @@ In this work, we aim to build a low level obstacle avoidance controller using de
   - **turtlebot3_descriptions** : Package required to simulate the turtlebot environment
   - **turtlebot3_simulations**  : Package required to simulate the turtlebot environment
 - **Other Files** : Has the files inclusing a notebook used outside ROS to develop the algorithm
-- 
+- **Media**       : Has some videos and pictures from Gazebo
+  
 ## Implementation
 - Every 0.1 seconds (with a frequency of 10 Hz), a depth image is generated from the Intel RealSense Camera.
 - A safe set is computed from this depth image and the configuration of this set is published to the ROS topic "Safe_Set_Config". This is done by the script kth_rpl_obstacle_avoidance/src/scripts
