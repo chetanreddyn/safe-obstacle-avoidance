@@ -1,7 +1,21 @@
 # safe-obstacle-avoidance
 
-In this work, we aim to build a low level obstacle avoidance controller using depth images that does not rely on global localisation or pre-existing maps. Using Control Barrier Functions (CBFs), we provide provable guarantees to safety even in an unknown and uncertain environment.  
+In this work, we aim to build a low level obstacle avoidance controller using depth images that does not rely on global localisation or pre-existing maps. Using Control Barrier Functions (CBFs), we provide provable guarantees to safety even in an unknown and uncertain environment. 
 
+## Folder Structure:
+- **ROS Packages**
+  - **kth_rpl_obstacle_avoidance**
+     - **msg** : Has the .msg files for specifying the safeset configuration msg type.
+     - **src/scripts**
+       - **Ellipsoid_Approximation** : Has the files to generate the safesets and the CBF-controller using ellipsoidal approximation for unsafe regions
+       - **Triangular_SafeSet** : Has the files to generate the triagular safesets and the CBF-controller
+     - **CMakeLists.txt**
+     - **default.rviz**
+     - **package.xml**
+  - **turtlebot3_descriptions** : Package required to simulate the turtlebot environment
+  - **turtlebot3_simulations**  : Package required to simulate the turtlebot environment
+- **Other Files** : Has the files inclusing a notebook used outside ROS to develop the algorithm
+- 
 ## Implementation
 - Every 0.1 seconds (with a frequency of 10 Hz), a depth image is generated from the Intel RealSense Camera.
 - A safe set is computed from this depth image and the configuration of this set is published to the ROS topic "Safe_Set_Config". This is done by the script kth_rpl_obstacle_avoidance/src/scripts
