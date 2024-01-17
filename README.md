@@ -10,7 +10,7 @@ In this work, we aim to build a low level obstacle avoidance controller using de
 - We assume that a high level controller provides the reference direction and velocity. The synthesized controls are made to be as close as possible to these reference values while complying with the inequality constraints. We calculate this by formulating a Quadratic Program.
 
 Instructions to Run the Code:
-- After installing the ROS Packages, execute the following commands as follows
+- After installing the ROS Packages, execute the commands as given below.
 - `roslaunch turtlebot3_gazebo turtlebot3_house.launch` This launches the Gazebo environment and spawns the turtlebot.
 - `roslaunch turtlebot3_teleop turtlebot3_teleop_key.launch` This launches the teleop control, which helps control the turtlebot using the keyboard keys w,a,s,d,x.
 - `rosrun kth_rpl_obstacle_avoidance safe_set_generator_ellipsoid.py` This starts the script to generate the safe set from the depth image using ellipsoid approximation.
