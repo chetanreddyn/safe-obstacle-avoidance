@@ -36,7 +36,11 @@ Instructions to Run the Code:
 - The Video shows an implementation of the CBF based controller successfully avoiding an obstacle. The blue arrow represents the reference direction. The control synthesis has a mathematical backing to the safety.
 
 
-https://github.com/chetanreddy1412/safe-obstacle-avoidance/assets/60615610/03253815-5a0b-4eda-b857-a247d76853b1
+
+https://github.com/chetanreddy1412/safe-obstacle-avoidance/assets/60615610/f7d4e3cd-c5c5-4b7a-a759-1f2a176249a8
+
+
+
 
 - The trajectories of Reference Velocity and Filtered Velocity Commands (which comply with safety constraints) are depicted below for a particular segment of the path:
 
