@@ -2,14 +2,14 @@
 
 import rospy
 from sensor_msgs.msg import Image
-from kth_rpl_obstacle_avoidance.msg import SafeSetEllipsoidsConfig 
+from kth_rpl_obstacle_avoidance.msg import SafeSetConfig 
 import cv2
 from cv_bridge import CvBridge
 import numpy as np
 import matplotlib.pyplot as plt
 
 class SafeSetEllipsoid:
-    def __init__(self, robot_config,algo_config,render_config):
+    def __init__(self, robot_config,algo_config):
         
         ### ROS Stuff ###
         self.bridge = CvBridge() #it helps in converting ROS Image type to cv2 image type i.e np array
@@ -46,18 +46,6 @@ class SafeSetEllipsoid:
         self.d_s                   = algo_config['d_s']
         self.b_i                   = algo_config['b_i']
         self.num_ellipses          = algo_config['num_ellipses']
-
-        # Rendering Properties
-        self.y_limit               = render_config['y_limit'] # Indicates the maximum local region to be shown in the rendered image (= r_limit or r_max_ellipse)
-        self.x_limit               = self.y_limit
-
-        self.img_height            = render_config['img_height'] # For rendering
-
-        self.scale                 = self.img_height/(2*self.y_limit)
-        self.img_width             = int(2*self.scale*self.x_limit)
-        self.ellipse_color         = render_config['ellipse_color']
-        self.thickness             = render_config['thickness']
-        self.theta_ellipse_resolution = render_config['theta_ellipse_resolution']
 
 
     def callback_depth(self,data):
@@ -125,8 +113,7 @@ class SafeSetEllipsoid:
 
     def update_safe_set(self, radial_depth_1d):
         
-        '''Updates the Best Local Safe Set as new depth data comes in'''
-
+        '''Updates the Best Safe Set as new depth data comes in'''
         theta_min             = self.theta_min
         theta_max             = self.theta_max
         fov                   = self.fov
@@ -150,34 +137,22 @@ class SafeSetEllipsoid:
         # The complete 360 axis
         angle_1d_360 = np.hstack([angle_1d_outside_fov_1,angle_1d[::-1],angle_1d_outside_fov_2])
         radial_depth_1d_360 = np.hstack([radial_depth_1d_outside_fov_1,radial_depth_1d[::-1],radial_depth_1d_outside_fov_2])
- 
-        depth_data_processed = np.hstack([angle_1d_360.reshape(-1,1),radial_depth_1d_360.reshape(-1,1)]) #shape = (~num_ellipses,2)
 
-        # depth_data_processed = dict(zip(angle_1d_360,radial_depth_1d_360))
+        depth_data_processed = dict(zip(angle_1d_360,radial_depth_1d_360))
+
         ellipses_data_plt = {}
 
          # Maximum depth range of the stereo/depth camera
-        P = depth_data_processed.shape[0]
-        ellipses_data_msg = np.zeros(shape=(P,5)) 
-        # Assuming that the shape of data is (P,5) where row i is (cx_i,cy_i,a_i,b_i,theta_i) as defined in Formulation 3 (2)
 
 
-        for i in range(depth_data_processed.shape[0]): # i represents the i th point and the i th ellipse
+        for theta_i,r_i in depth_data_processed.items(): # i represents the i th point and the i th ellipse
 
-            theta_i,r_i = depth_data_processed[i][0],depth_data_processed[i][1]
             C = ((r_max_ellipse+r_i)/2)*np.array([[np.cos(theta_i)],[np.sin(theta_i)]]) # Center of the Ellipse shape = (2,1)
             a_i = (r_max_ellipse-r_i)/2 + d_s # Semi Major Axis Length Shape = scalar
 
             ellipse_points = self.get_ellipse_points(center=C,semi_major=a_i,semi_minor=b_i,theta_i=theta_i) # Shape = (2,resolution)
             ellipses_data_plt[theta_i] = ellipse_points
-            
-            ellipses_data_msg[i][0] = C[0][0] # x coordinate of center
-            ellipses_data_msg[i][1] = C[1][0] # y coordinate of center
-            ellipses_data_msg[i][2] = a_i # semi major axis length
-            ellipses_data_msg[i][3] = b_i # semi minor axis length
-            ellipses_data_msg[i][4] = theta_i # Orientation of the Ellipse
 
-        self.ellipses_data_msg = ellipses_data_msg
         self.ellipses_data = ellipses_data_plt
 
     def show_images(self):
@@ -209,88 +184,66 @@ class SafeSetEllipsoid:
 
     ####### Plotting Helper Functions ########
     def render(self):
-
-        # fig,ax = plt.subplots(figsize=(10,10))
-        # for ellipse_points in self.ellipses_data.values():
-        #     ax.plot(ellipse_points[0],ellipse_points[1],color='r')
-
-        # fig.canvas.draw()
-
-        # plt_data0 = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
-        # # print(data0.shape)
-        # # print(fig.canvas.get_width_height())
-
-        img_height = self.img_height
-        img_width = self.img_width
-        x_limit = self.x_limit
-        y_limit = self.y_limit
-        scale = self.scale
-
-
-        ellipse_color = self.ellipse_color
-        thickness = self.thickness
-        isClosed = True
-
-        canvas = np.ones(shape=(img_height,img_width,3))
+        print('In Render')
+        desired_dpi = 80  # Adjust the DPI to your desired resolution
+        fig = plt.figure(dpi=desired_dpi)
+        ax = plt.subplot()
         for ellipse_points in self.ellipses_data.values():
-            X_pixel = ((np.array([[1,0],[0,-1]])@ellipse_points + np.array([[x_limit],[y_limit]]))*scale).astype(np.int32)
-            cv2.polylines(canvas,[X_pixel.T.reshape(-1,1,2)],isClosed,ellipse_color,thickness)   
-    
-        self.rendered_data = canvas
+            ax.plot(ellipse_points[0],ellipse_points[1],color='r')
 
+        fig.canvas.draw()
+
+        plt_data0 = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
+        # print(data0.shape)
+        # print(fig.canvas.get_width_height())
+        self.rendered_data = plt_data0.reshape(fig.canvas.get_width_height()[::-1] + (3,))   
+        # print(self.rendered_data.shape)    
+        # print(self.rendered_data.min()) 
+        # print(self.rendered_data.max()) 
 
 def main():
 
-    algo_config = {'render_plt':False,
-                'depth_val_outside_fov':0.8,
+    algo_config = {'render_plt':True,
+                'depth_val_outside_fov':0.5,
                 'r_max_ellipse':5,
-                'd_s':0.2,
-                'b_i':0.15,
-                'num_ellipses':200
+                'd_s':0.05,
+                'b_i':0.1,
+                'num_ellipses':100
                 }
 
-    robot_config = {'theta_min':30*np.pi/180, # Minimum Angle of the Camera
-                    'theta_max':150*np.pi/180, # Maximum Angle of the Camera
+    robot_config = {'theta_min':60*np.pi/180, # Minimum Angle of the Camera
+                    'theta_max':120*np.pi/180, # Maximum Angle of the Camera
                     'max_depth':5, # Maximum Depth Perceived by the Camera (Used in the Loss Function)
-                    'min_depth':0.4, # Minimum Depth Perceived by the Camera
+                    'min_depth':0.2, # Minimum Depth Perceived by the Camera
                     'r_limit'  :2.5, # Maximum Radial Distance to Depict in the Plots
                     'r0'       :0.15, # Robot Radius 
                     'l'        :-0.08, #Distance of axle from Centre
                     # 'resolution': 1920
                     }
-    
-    # Rendering Properties
-    render_config = {'y_limit': 6,
-                    'img_height': 300,
-                    'ellipse_color':(255,0,0),
-                    'thickness': 1,
-                    'theta_ellipse_resolution':50
-                    }
 
     
     rospy.init_node('safe_set_generator', anonymous=True)
-    pub = rospy.Publisher('/safe_set_config', SafeSetEllipsoidsConfig, queue_size=10)
+    # pub = rospy.Publisher('/safe_set_config', SafeSetConfig, queue_size=10)
 
-    ss_obj = SafeSetEllipsoid(robot_config,algo_config,render_config) #safe_set object
+    ss_obj = SafeSetEllipsoid(robot_config,algo_config) #safe_set object
     
-    rate = rospy.Rate(1)
+    rate = rospy.Rate(2)
     # figsize = (3,3)
     # plt.figure(1,figsize=figsize)
     while not rospy.is_shutdown():
         ss_obj.show_images()
 
-        ss_config = SafeSetEllipsoidsConfig()
+        # ss_config = SafeSetConfig()
         # print("Feasible Set Percent",ss_obj.feasible_safe_sets_percent)
         # print('here')
         if ss_obj.angle_1d is not None:
 
-            ss_config.data = ss_obj.ellipses_data_msg.reshape(-1)
-            ss_config.columns = 5
+            # ss_config.t1 = ss_obj.best_safe_set_config['Shrunk_theta1']*180/np.pi
             # ss_config.t2 = ss_obj.best_safe_set_config['Shrunk_theta2']*180/np.pi
             # ss_config.depth = ss_obj.best_safe_set_config['Shrunk_depth']
-            pub.publish(ss_config)
+            # pub.publish(ss_config)
             current_time = rospy.Time.now()
-            print("Published Safe Set | Time:", current_time.to_sec())
+            print("TIme Step: ", current_time)
             # print(ss_config)
 
         rate.sleep()
